@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM Pricing Plans</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .pricing-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            padding: 20px;
+        }
+        .pricing-card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .pricing-card:hover {
+            transform: translateY(-5px);
+        }
+        .plan-name {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        .plan-price {
+            font-size: 48px;
+            color: #007bff;
+            margin: 20px 0;
+        }
+        .plan-price small {
+            font-size: 16px;
+            color: #666;
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 30px 0;
+        }
+        .feature-list li {
+            padding: 10px 0;
+            color: #666;
+        }
+        .feature-list li::before {
+            content: "✓";
+            color: #28a745;
+            margin-right: 10px;
+        }
+        .cta-button {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        .cta-button:hover {
+            background-color: #0056b3;
+        }
+        @media (max-width: 768px) {
+            .pricing-container {
+                grid-template-columns: 1fr;
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="pricing-container">
+        <div class="pricing-card">
+            <h2 class="plan-name">Free Tier</h2>
+            <div class="plan-price">₹0 <small>/month</small></div>
+            <ul class="feature-list">
+                <li>Up to 10 clients</li>
+                <li>Basic CRM features</li>
+                <li>Calendar management</li>
+                <li>Email notifications</li>
+                <li>Basic reporting</li>
+            </ul>
+            <a href="#" class="cta-button" onclick="selectPlan('free')">Get Started</a>
+        </div>
+        
+        <div class="pricing-card">
+            <h2 class="plan-name">Pro Tier</h2>
+            <div class="plan-price">₹299 <small>/month</small></div>
+            <ul class="feature-list">
+                <li>Unlimited clients</li>
+                <li>Advanced CRM features</li>
+                <li>WhatsApp integration</li>
+                <li>Smart follow-up suggestions</li>
+                <li>Priority support</li>
+                <li>Advanced analytics</li>
+                <li>Custom reporting</li>
+            </ul>
+            <a href="#" class="cta-button" onclick="selectPlan('pro')">Upgrade Now</a>
+        </div>
+
+        <div class="pricing-card">
+            <h2 class="plan-name">Lifetime Pro</h2>
+            <div class="plan-price">₹5999 <small>one-time</small></div>
+            <ul class="feature-list">
+                <li>All Pro Tier features</li>
+                <li>Lifetime access</li>
+                <li>Free updates forever</li>
+                <li>Premium support</li>
+                <li>Early access to new features</li>
+            </ul>
+            <a href="#" class="cta-button" onclick="selectPlan('lifetime')">Get Lifetime Access</a>
+        </div>
+    </div>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        function selectPlan(plan) {
+            // Prevent default form submission
+            event.preventDefault();
+
+            // Define plan details
+            const planDetails = {
+                free: { price: 0, name: 'Free Tier' },
+                pro: { price: 29900, name: 'Pro Tier' }, // in cents (₹299)
+                lifetime: { price: 599900, name: 'Lifetime Pro' } // in cents (₹5999)
+            };
+
+            // If free plan, just activate it
+            if (plan === 'free') {
+                localStorage.setItem('userPlan', 'free');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // For paid plans, initialize Razorpay
+            const options = {
+                key: 'YOUR_RAZORPAY_KEY', // Replace with your Razorpay key
+                amount: planDetails[plan].price,
+                currency: 'INR',
+                name: 'CRM Dashboard',
+                description: planDetails[plan].name,
+                handler: function(response) {
+                    // Handle successful payment
+                    localStorage.setItem('userPlan', plan);
+                    localStorage.setItem('paymentId', response.razorpay_payment_id);
+                    window.location.href = 'index.html';
+                },
+                prefill: {
+                    name: localStorage.getItem('userName'),
+                    email: localStorage.getItem('userEmail')
+                },
+                theme: {
+                    color: '#007bff'
+                }
+            };
+
+            const rzp = new Razorpay(options);
+            rzp.open();
+        }
+    </script>
+</body>
+</html>

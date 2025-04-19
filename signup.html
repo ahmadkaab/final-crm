@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - CRM Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-box">
+            <h2>Create Your Account</h2>
+            <form id="signupForm" onsubmit="handleSignup(event)">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required>
+                </div>
+                <div class="form-group">
+                    <label for="plan">Select Plan</label>
+                    <select id="plan" required>
+                        <option value="free">Free Plan</option>
+                        <option value="pro">Pro Plan (₹999/month)</option>
+                        <option value="lifetime">Lifetime Pro (₹5999)</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary">Sign Up</button>
+            </form>
+            <p class="auth-link">Already have an account? <a href="login.html">Login here</a></p>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        async function handleSignup(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const plan = document.getElementById('plan').value;
+
+            try {
+                // Create user account
+                const user = await authManager.addUser(username, password, 'user');
+                
+                // Store email for future use
+                localStorage.setItem('userEmail', email);
+                localStorage.setItem('userName', username);
+
+                // If free plan selected, redirect to dashboard
+                if (plan === 'free') {
+                    localStorage.setItem('userPlan', 'free');
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                // For paid plans, initialize payment
+                const planDetails = {
+                    pro: { price: 99900, name: 'Pro Plan' }, // in cents (₹999)
+                    lifetime: { price: 599900, name: 'Lifetime Pro' } // in cents (₹5999)
+                };
+
+                const options = {
+                    key: 'YOUR_RAZORPAY_KEY',
+                    amount: planDetails[plan].price,
+                    currency: 'INR',
+                    name: 'CRM Dashboard',
+                    description: planDetails[plan].name,
+                    handler: function(response) {
+                        localStorage.setItem('userPlan', plan);
+                        localStorage.setItem('paymentId', response.razorpay_payment_id);
+                        window.location.href = 'index.html';
+                    },
+                    prefill: {
+                        name: username,
+                        email: email
+                    },
+                    theme: {
+                        color: '#007bff'
+                    }
+                };
+
+                const rzp = new Razorpay(options);
+                rzp.open();
+            } catch (error) {
+                alert('Signup failed: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
